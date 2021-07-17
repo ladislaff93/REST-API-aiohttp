@@ -19,14 +19,6 @@ routes = web.RouteTableDef()
 models.Base.metadata.create_all(bind=engine)
 
 
-# http response codes
-@middleware
-async def middleware(request, handler):
-    resp = await handler(request)
-    resp.text = resp.text
-    return resp
-
-
 @routes.get('/price/{currency}')
 async def price(request):
     try:
@@ -40,6 +32,7 @@ async def price(request):
             'price': bid,
             'date': timestamp
         }
+        # adding currencies to the db
         coin_ = Coin()
         coin_.currency = symbol
         coin_.price = bid
@@ -47,6 +40,7 @@ async def price(request):
         session.add(coin_)
         session.commit()
         session.close()
+
         return web.Response(text=json.dumps(response_obj), status=200)
     except Exception:
         raise aiohttp.web.HTTPBadRequest
@@ -75,7 +69,7 @@ async def price_delete(request):
 
 
 async def init():
-    app = web.Application(middlewares=[middleware])
+    app = web.Application()
     app.router.add_routes(routes)
     return app
 
