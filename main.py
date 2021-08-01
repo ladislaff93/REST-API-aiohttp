@@ -48,18 +48,21 @@ async def price(request):
 
 @routes.get('/price/history/')
 async def price_return(request):
-    page = request.rel_url.query.get('page')
-    coins_db = session.query(Coin).limit(10).offset((int(page)-1)*10)
-    output = []
-    for coin in coins_db:
-        response_obj = {'id': coin.id,
-                        'symbol': coin.currency,
-                        'bid': coin.price,
-                        'timestamp': coin.date
-                        }
-        output.append(response_obj)
-    response = {'results': output}
-    return web.Response(text=json.dumps(response), status=200)
+    try:
+        page = request.rel_url.query.get('page')
+        coins_db = session.query(Coin).limit(10).offset((int(page)-1)*10)
+        output = []
+        for coin in coins_db:
+            response_obj = {'id': coin.id,
+                            'symbol': coin.currency,
+                            'bid': coin.price,
+                            'timestamp': coin.date
+                            }
+            output.append(response_obj)
+        response = {'results': output}
+        return web.Response(text=json.dumps(response), status=200)
+    except Exception:
+        raise aiohttp.web.HTTPBadRequest
 
 
 @routes.delete('/price/history')
